@@ -1,21 +1,74 @@
-apply plugin: 'java'
-apply plugin: 'eclipse'
+/*
+ * Build Script For Simple Hub
+ */
 
-sourceCompatibility = 1.5
+plugins {
+	id 'java'
+	id'eclipse'
+	id 'com.github.johnrengelman.shadow' version '1.2.1'
+	//id "com.github.hierynomus.license" version "0.11.0"
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 version = '1.0'
 jar {
     manifest {
-        attributes 'Implementation-Title': 'Gradle Quickstart',
-                   'Implementation-Version': version
+        attributes 'Implementation-Title': 'Utils',
+                   'Implementation-Version': version,
+                   'Test-Entry': 'PASSED'
     }
 }
 
+
 repositories {
     mavenCentral()
+    maven {
+    	name = "spigot-repo"
+    	url = "https://hub.spigotmc.org/nexus/content/groups/public/"
+    }
+    
+    maven {
+    	name = "sonotype"
+    	url = "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
+    
+    maven {
+    	name = "sonotype-public"
+    	url = "https://oss.sonatype.org/content/repositories/public/"
+    }
+    
+    maven {
+    	name = "gravitydev"
+    	url = 'http://repo.gravitydevelopment.net'
+    }
+   
+    maven {
+    	name = "mcstats"
+    	url = 'http://repo.mcstats.org/content/repositories/public'
+    }
+    
+    maven {
+    	name = "bukkit-repo"
+    	url = "http://repo.bukkit.org/content/groups/public/"
+    }
+    
+    maven {
+    	name = "shadowvolt-repo"
+    	url = "http://ci.shadowvolt.com/plugin/repository/everything/"
+    }
+    
+    flatDir name: "lib", dirs: "${rootProject.projectDir}/lib"
 }
 
 dependencies {
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2'
+    compile name: "spigot-api", group: "org.spigotmc", version: "1.8.7-R0.1-SNAPSHOT"
+    compile name: "bungeecord-chat", group: "net.md-5", version: "1.8-SNAPSHOT"
+    compile name: "snakeyaml", group: "org.yaml", version: "1.16-SNAPSHOT"
+    compile name: "updater", group: "net.gravitydevelopment.updater", version: "2.1"
+    compile name: "metrics", group: "org.mcstats.bukkit", version: "R8-SNAPSHOT"
+    //compile name: "ProtocolLib", group: "com.comphenix.protocol", version: "3.6.3-SNAPSHOT"
     testCompile group: 'junit', name: 'junit', version: '4.+'
 }
 
@@ -29,4 +82,25 @@ uploadArchives {
            dirs 'repos'
        }
     }
+}
+
+shadowJar {
+    dependencies {
+    	exclude(dependency ('org.bukkit:bukkit'))
+    }
+
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+    exclude 'license/*'
+}
+
+task push(type: Copy, dependsOn: 'build') {
+	from("build/libs") {
+	 include '*.jar'
+	}
+	into "/Users/edds/Desktop/Servers/newServer/plugins"
+}
+
+task wrapper(type: Wrapper) {
+	gradleVersion = "2.4"
 }
