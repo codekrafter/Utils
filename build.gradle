@@ -4,13 +4,17 @@
 
 plugins {
 	id 'java'
-	id'eclipse'
+	id 'eclipse'
+	id 'maven'
+	id 'signing'
 	id 'com.github.johnrengelman.shadow' version '1.2.1'
 	//id "com.github.hierynomus.license" version "0.11.0"
 }
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
+group = "net.codekrafter.plugins"
+archivesBaseName = "utils"
 version = '1.0'
 jar {
     manifest {
@@ -78,10 +82,51 @@ test {
 
 uploadArchives {
     repositories {
-       flatDir {
+    
+    flatDir {
            dirs 'repos'
        }
+    
+    mavenDeployer {
+      beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+      repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+        authentication(userName: "", password: "")
+      }
+
+      snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+        authentication(userName: "", password: "")
+      }
+
+      pom.project {
+        name 'Utils'
+        packaging 'jar'
+        description 'Codekrafter\'s Spigot/Bukkit Utils'
+        url 'codekrafter.net'
+
+        scm {
+          connection 'https://github.com/codekrafter/Utils.git'
+          developerConnection 'https://github.com/codekrafter/Utils.git'
+          url 'https://github.com/codekrafter/Utils'
+        }
+
+        licenses {
+          license {
+            name 'The Apache License, Version 2.0'
+            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+          }
+        }
+
+        developers {
+          developer {
+            id 'codekrafter'
+            name 'Eli (codekrafter)'
+            email 'codekrafter@gmail.com'
+          }
+        }
+      }
     }
+  }
 }
 
 shadowJar {
@@ -94,6 +139,10 @@ shadowJar {
     exclude 'license/*'
 }
 
+signing {
+    sign configurations.archives
+}
+
 task push(type: Copy, dependsOn: 'build') {
 	from("build/libs") {
 	 include '*.jar'
@@ -103,4 +152,14 @@ task push(type: Copy, dependsOn: 'build') {
 
 task wrapper(type: Wrapper) {
 	gradleVersion = "2.4"
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
 }
